@@ -1,4 +1,6 @@
 # LLMCopilot
+[English](./README_EN.md)
+
 这是一个基于[Ollama](https://github.com/ollama/ollama)的Visual Studio扩展。
 
 ## 功能

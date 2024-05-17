@@ -1,4 +1,7 @@
 # LLMCopilot
+
+[中文](.\README.md)
+
 This is a Visual Studio extension based on [Ollama](https://github.com/ollama/ollama).
 
 ## Features
