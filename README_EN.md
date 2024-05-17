@@ -29,9 +29,9 @@ This is a Visual Studio extension based on [Ollama](https://github.com/ollama/ol
 - Supports setting the model response language to Chinese or English (depending on model support)
 
 ## Screenshots
-![Settings](./images/image.png)
-![Chatting](./images/image-1.png)
-![Auto-completion](./images/image-2.png)
+![Settings](images/image.png)
+![Chatting](images/image-1.png)
+![Auto-completion](images/image-2.png)
 
 ## Acknowledgements
 - Thanks to [Ollama](https://github.com/ollama/ollama) for providing an excellent large model server backend and easy-to-use API interface.
