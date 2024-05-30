@@ -1,11 +1,13 @@
 # LLMCopilot
 [English](https://github.com/foryoung365/vs-extension-llmcopilot/blob/main/README_EN.md)
 
+这是一个基于[Ollama](https://github.com/ollama/ollama)的Visual Studio扩展。
+
 ## 版本记录
 
 [版本记录](https://github.com/foryoung365/vs-extension-llmcopilot/blob/main/CHANGELOG.md)
 
-这是一个基于[Ollama](https://github.com/ollama/ollama)的Visual Studio扩展。
+
 
 ## 功能
 - 基于`Ollama`的本地大模型，所有数据都在本地，即使离线也可使用
