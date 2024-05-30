@@ -1,8 +1,12 @@
 # LLMCopilot
 
-[中文](.\README.md)
+[中文](https://github.com/foryoung365/vs-extension-llmcopilot)
 
 This is a Visual Studio extension based on [Ollama](https://github.com/ollama/ollama).
+
+## CHANGLOG
+
+[CHANGELOG](https://github.com/foryoung365/vs-extension-llmcopilot/blob/main/CHANGELOG_EN.md)
 
 ## Features
 - Based on `Ollama`'s local large model, all data is stored locally and can be used even offline.

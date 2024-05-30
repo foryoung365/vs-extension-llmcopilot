@@ -1,5 +1,9 @@
 # LLMCopilot
-[English](README_EN.md)
+[English](https://github.com/foryoung365/vs-extension-llmcopilot/blob/main/README_EN.md)
+
+## 版本记录
+
+[版本记录](https://github.com/foryoung365/vs-extension-llmcopilot/blob/main/CHANGELOG.md)
 
 这是一个基于[Ollama](https://github.com/ollama/ollama)的Visual Studio扩展。
 
