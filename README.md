@@ -34,9 +34,9 @@
 - 支持设置模型响应语言为中文或者英文（需模型支持）
 
 ## 截图
-![设置](Images/image.png)
-![聊天](Images/image-1.png)
-![自动补全](Images/image-2.png)
+![设置](https://raw.githubusercontent.com/foryoung365/vs-extension-llmcopilot/main/Images/image.png)
+![聊天](https://raw.githubusercontent.com/foryoung365/vs-extension-llmcopilot/main/Images/image-1.png)
+![自动补全](https://raw.githubusercontent.com/foryoung365/vs-extension-llmcopilot/main/Images/image-2.png)
 
 ## 感谢
 - [Ollama](https://github.com/ollama/ollama)带来的好用的大模型服务器后端和方便易用的Api接口

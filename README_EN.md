@@ -33,9 +33,9 @@ This is a Visual Studio extension based on [Ollama](https://github.com/ollama/ol
 - Supports setting the model response language to Chinese or English (depending on model support)
 
 ## Screenshots
-![Settings](Images/image.png)
-![Chatting](Images/image-1.png)
-![Auto-completion](Images/image-2.png)
+![Settings](https://raw.githubusercontent.com/foryoung365/vs-extension-llmcopilot/main/Images/image.png)
+![Chatting](https://raw.githubusercontent.com/foryoung365/vs-extension-llmcopilot/main/Images/image-1.png)
+![Auto-completion](https://raw.githubusercontent.com/foryoung365/vs-extension-llmcopilot/main/Images/image-2.png)
 
 ## Acknowledgements
 - Thanks to [Ollama](https://github.com/ollama/ollama) for providing an excellent large model server backend and easy-to-use API interface.
