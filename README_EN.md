@@ -6,7 +6,7 @@ This is a Visual Studio extension based on [Ollama](https://github.com/ollama/ol
 
 ## Version History
 
-[Version History](https://github.com/foryoung365/vs-extension-llmcopilot/blob/main/CHANGELOG.md)
+[Version History](https://github.com/foryoung365/vs-extension-llmcopilot/blob/main/CHANGELOG_EN.md)
 
 - Please note that the shortcut key to accept all predictions has been changed to `Alt+Q` to reduce misinterpretation of combinations like `Ctrl+C` during normal input. For more details, see the `Settings` section.
 
