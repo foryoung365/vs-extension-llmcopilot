@@ -1,13 +1,13 @@
 # LLMCopilot
 [English](https://github.com/foryoung365/vs-extension-llmcopilot/blob/main/README_EN.md)
 
-这是一个基于[Ollama](https://github.com/ollama/ollama)的Visual Studio扩展。
+这是一个基于[Ollama](https://github.com/ollama/ollama)的Visual Studio扩展。得益于Ollama的本地化部署和强大的LLM（大型语言模型）支持，你可以像使用github copilot一样获得代码提示和建议，但是所有数据都在本地，甚至可以离线运行。
 
 ## 版本记录
 
 [版本记录](https://github.com/foryoung365/vs-extension-llmcopilot/blob/main/CHANGELOG.md)
 
-
+- 请注意，接受所有预测的快捷键修改为了`Alt+Q`，这样可以减少正常输入过程中使用`Ctrl+C`等组合键被误判为接受预测。详情请查看`设置`部分。
 
 ## 功能
 - 基于`Ollama`的本地大模型，所有数据都在本地，即使离线也可使用
@@ -24,8 +24,8 @@
   - 自定义自动补全大模型
 
 - 支持自定义模型"Fill in the middle" token，可兼容更多大模型
-- 代码自动补全开关，默认关闭
-    - 按下`Ctrl`键接受所有预测
+- 代码自动补全开关，默认`关闭`
+    - 按下`Alt+Q`键接受所有预测
     - 按下`数字1-9`，接受前N行预测
     - 按下`ESC`键拒绝预测
   
@@ -43,4 +43,5 @@
 - [OllamaSharp](https://github.com/awaescher/OllamaSharp)用于访问Ollama Api的客户端。
 - [MdXaml](https://github.com/whistyun/MdXaml)用于聊天窗口的markdown渲染。
 - [privy](https://github.com/srikanth235/privy)的提示词模板。
+
 非常感谢他们提供的优秀工具。
