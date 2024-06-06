@@ -1,5 +1,10 @@
 ## CHANGELOG
 
+### v1.3.1
+
+- Optimized the issue where the prediction text box would sometimes appear continuously after rapid consecutive inputs.
+
+
 ### v1.2.2
 
 - Optimized the chat window to allow input of newline characters and copying multiple lines of text into the chat box.
