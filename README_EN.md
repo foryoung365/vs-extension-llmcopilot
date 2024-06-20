@@ -49,3 +49,6 @@ This is a Visual Studio extension based on [Ollama](https://github.com/ollama/ol
 - Thanks to [privy](https://github.com/srikanth235/privy) for the prompt templates.
 
 Many thanks to them for providing excellent tools.
+
+## FAQ 
+[FAQ](./FAQ_EN.md)
