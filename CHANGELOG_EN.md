@@ -6,6 +6,12 @@ Versioning rules: v`Major.Minor.Build`
 - Minor: Incremented for new features or optimizations (e.g., from 1.0.0 to 1.1.0)
 - Build: Automatically incremented with each build, typically does not involve functional changes, and can be ignored.
 
+### v1.5.x
+
+- Added `Generate Unit Test` command.
+- Added support for `vs2017`.
+- Entering numbers will no longer trigger `code complete` to avoid incorrect prediction acceptance.
+
 ### v1.4.x
 
 - Improved support for Dark Theme.

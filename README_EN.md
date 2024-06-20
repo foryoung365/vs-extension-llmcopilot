@@ -4,6 +4,8 @@
 
 This is a Visual Studio extension based on [Ollama](https://github.com/ollama/ollama). Thanks to Ollama's localized deployment and powerful LLM (Large Language Model) support, you can get code suggestions and tips similar to GitHub Copilot, but all data is local and can even run offline.
 
+**If this extension is helpful to you, please give us a 5-star rating on the marketplace.**
+
 ## Version History
 
 [Version History](https://github.com/foryoung365/vs-extension-llmcopilot/blob/main/CHANGELOG_EN.md)
@@ -18,6 +20,7 @@ This is a Visual Studio extension based on [Ollama](https://github.com/ollama/ol
   - Code error checking
   - Adds comments
   - Chats with the local large model
+  - Generate Unit Test
 
 ## Settings
 - Supports customization to use different large models, allowing you to experiment:

@@ -3,6 +3,8 @@
 
 这是一个基于[Ollama](https://github.com/ollama/ollama)的Visual Studio扩展。得益于Ollama的本地化部署和强大的LLM（大型语言模型）支持，你可以像使用github copilot一样获得代码提示和建议，但是所有数据都在本地，甚至可以离线运行。
 
+**如果此插件对你有帮助，请在marketplace中给我们一个五星评价。**
+
 ## 版本记录
 
 [版本记录](https://github.com/foryoung365/vs-extension-llmcopilot/blob/main/CHANGELOG.md)
@@ -17,6 +19,7 @@
   - 代码查错
   - 添加注释
   - 和本地大模型聊天
+  - 生成单元测试
   
 ## 设置
 - 支持自定义使用不同的大模型，您可以自行尝试
