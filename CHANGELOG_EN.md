@@ -6,6 +6,12 @@ Versioning rules: v`Major.Minor.Build`
 - Minor: Incremented for new features or optimizations (e.g., from 1.0.0 to 1.1.0)
 - Build: Automatically incremented with each build, typically does not involve functional changes, and can be ignored.
 
+### v1.6.x
+
+- Added context length setting, which can be configured in the extension settings page.
+- Now switching or closing the conversation window will retain chat history.
+- Added window menu bar with options to list models and clear conversation history.
+
 ### v1.5.x
 
 - Added `Generate Unit Test` command.

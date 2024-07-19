@@ -8,10 +8,10 @@
 
 目前版本中，仅当前编辑文件会作为代码自动完成的参考。
 
-## 使用的`Context Window`长度是多少？
+## 使用的`Context Window`长度是多少，如何修改？
 
-- 固定的`2K Context Window`用于代码完成，暂不支持修改。考虑到大部分的工作电脑都不会有太大的显存，这是一个平均来说可以获得较好的`code Complete`体验的长度。
-- 用于对话的`Context Window`长度，在`Visual Studio`加载扩展时，根据`Ollama`返回的`num_ctx`自动设定。如果你希望修改这个值，你可以自定义`Ollama`的`Modelfile`文件。请参考[Ollama modelfile](https://github.com/ollama/ollama/blob/main/docs/modelfile.md)。
+- 默认的`2K Context Window`用于代码完成，`4K Context Window`用于对话。
+- 你可以在插件的配置页中进行修改。
 
 ## `Settings`设置页中的`Reverse Proxy Access Token`是什么？如何使用？
 

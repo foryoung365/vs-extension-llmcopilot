@@ -8,10 +8,10 @@ Absolutely not. `LLMCopilot` only communicates with the `Ollama` server you conf
 
 In the current version, only the file being edited is used as a reference for code auto-completion.
 
-## What is the length of the `Context Window` used?
+## What is the length of the `Context Window` used, and how can it be modified?
 
-- A fixed `2K Context Window` is used for code completion, and it cannot be modified at this time. Considering that most work computers do not have a large amount of VRAM, this length generally provides a good `code complete` experience.
-- The length of the `Context Window` used for conversation is automatically set based on the `num_ctx` returned by `Ollama` when the extension is loaded in `Visual Studio`. If you want to modify this value, you can customize the `Ollama` `Modelfile`. Refer to [Ollama modelfile](https://github.com/ollama/ollama/blob/main/docs/modelfile.md) for more details.
+- The default `2K Context Window` is used for code completion, while the `4K Context Window` is used for chat.
+- You can make modifications in the setting page of the extension.
 
 ## What is the `Reverse Proxy Access Token` in the `Settings` page? How do I use it?
 
