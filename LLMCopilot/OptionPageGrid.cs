@@ -8,6 +8,7 @@ namespace LLMCopilot
     public enum ResponseLanguage
     { 
         English,
+        Russian,
         Chinese,
     }
 

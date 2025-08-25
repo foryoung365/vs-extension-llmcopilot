@@ -85,6 +85,21 @@ namespace LLMCopilot
         public string GetExplainCodeTemplate(string code, string file)
         {
             string code_type = VsHelpers.GetSourceCodeType(file);
+
+            string templateRU = $@"## Инструкция
+Обобщите приведенный ниже код (с акцентом на его ключевую функциональность).
+
+## Выбранный код
+```{code_type}
+{code}
+```
+
+## Задача
+Обобщите код на высоком уровне (включая цель и назначение) с акцентом на его ключевую функциональность.
+
+## Ответ
+
+";
             string templateEN = $@"## Instructions
 Summarize the code below (emphasizing its key functionality).
 
@@ -114,12 +129,37 @@ Summarize the code at a high level (including goal and purpose) with an emphasis
 
 ";
 
-            return Options.Language == ResponseLanguage.English ? templateEN : templateCN;
+            return
+                  Options.Language == ResponseLanguage.English ? templateEN :
+                  Options.Language == ResponseLanguage.Chinese ? templateCN :
+                  Options.Language == ResponseLanguage.Russian ? templateRU :
+                  throw new NotSupportedException("Specified language is not supported");
         }
 
         public string GetFindBugTemplate(string code, string file)
         {
             string code_type = VsHelpers.GetSourceCodeType(file);
+
+            string templateRU = $@"## Инструкции
+Что может быть не так в приведённом ниже коде?
+Рассматривайте только те ошибки, которые могут привести к некорректному поведению программы.
+Язык программирования — {code_type}.
+
+## Выбранный код
+```{code_type}
+{code}
+```
+
+## Задача
+Опишите, что может быть не так в коде.
+Рассматривайте только ошибки, которые могут привести к некорректной работе.
+По возможности предложите варианты исправления.
+Учитывайте, что в коде может и не быть ошибок.
+Включайте примеры и фрагменты кода (в формате Markdown), где это уместно.
+
+## Анализ
+
+";
             string templateEN = $@"## Instructions
 What could be wrong with the code below?
 Only consider defects that would lead to incorrect behavior.
@@ -162,12 +202,38 @@ Include code snippets(using Markdown) and examples where appropriate.
 
 ";
 
-            return Options.Language == ResponseLanguage.English ? templateEN : templateCN;
+            return
+                Options.Language == ResponseLanguage.English ? templateEN :
+                Options.Language == ResponseLanguage.Chinese ? templateCN :
+                Options.Language == ResponseLanguage.Russian ? templateRU :
+                throw new NotSupportedException("Specified language is not supported");
         }
 
         public string GetOptimizeCodeTemplate(string code, string file)
         {
             string code_type = VsHelpers.GetSourceCodeType(file);
+            string templateRU = $@"## Инструкция
+Как можно улучшить читаемость и производительность приведенного ниже кода?
+Язык программирования: {code_type}.
+Учти общую читаемость, производительность и идиоматические конструкции.
+
+## Выбранный код
+```{code_type}
+{code}
+```
+
+## Задача
+Как можно улучшить читаемость и производительность кода?
+Язык программирования: {code_type}.
+Учтите общую читаемость, производительность и идиоматические конструкции.
+Предложите возможные улучшения, где это уместно.
+Учтите, что код может быть идеальным и не требовать улучшений.
+Приведите примеры кода (с использованием Markdown) там, где это уместно.
+Примеры кода должны содержать валидный код на {code_type}.
+
+## Улучшения читаемости и производительности
+
+";
             string templateEN = $@"## Instructions
 How could the readability and performance of the code below be improved?
 The programming language is {code_type}.
@@ -213,12 +279,31 @@ The code snippets must contain valid {code_type} code.
 
 ";
 
-            return Options.Language == ResponseLanguage.English ? templateEN : templateCN;
+            return
+                Options.Language == ResponseLanguage.English ? templateEN :
+                Options.Language == ResponseLanguage.Chinese ? templateCN :
+                Options.Language == ResponseLanguage.Russian ? templateRU :
+                throw new NotSupportedException("Specified language is not supported");
         }
 
         public string GetUnitTestTemplate(string code, string file)
         {
             string code_type = VsHelpers.GetSourceCodeType(file);
+            string templateRU = $@"## Инструкция
+Напишите модульный тест для приведенного ниже кода.
+
+## Выбранный код
+```{code_type}
+{code}
+```
+
+## Задача
+Напишите модульный тест, содержащий тестовые случаи для успешного сценария (happy path) и для всех граничных случаев (edge cases).
+Язык программирования: {code_type}.
+
+## Ответ
+
+";
             string templateEN = $@"## Instructions
 Write a unit test for the code below.
 
@@ -250,12 +335,30 @@ The programming language is {code_type}.
 
 ";
 
-            return Options.Language == ResponseLanguage.English ? templateEN : templateCN;
+            return
+        Options.Language == ResponseLanguage.English ? templateEN :
+        Options.Language == ResponseLanguage.Chinese ? templateCN :
+        Options.Language == ResponseLanguage.Russian ? templateRU :
+        throw new NotSupportedException("Specified language is not supported");
         }
 
         public string GetAddCommentTemplate(string code, string file)
         {
             string code_type = VsHelpers.GetSourceCodeType(file);
+
+            string templateRU = $@"## Инструкция
+Документируйте код на уровне функций/методов/классов.
+Избегайте построчных комментариев.
+Язык программирования: {code_type}.
+
+## Код
+```{code_type}
+{code}
+```
+
+## Документированный код
+
+";
             string templateEN = $@"## Instructions
 Document the code on function/method/class level.
 Avoid line comments.
@@ -283,7 +386,11 @@ The programming language is {code_type}.
 
 ";
 
-            return Options.Language == ResponseLanguage.English ? templateEN : templateCN;
+            return
+    Options.Language == ResponseLanguage.English ? templateEN :
+    Options.Language == ResponseLanguage.Chinese ? templateCN :
+    Options.Language == ResponseLanguage.Russian ? templateRU :
+    throw new NotSupportedException("Specified language is not supported");
         }
 
         public static int EstimateTokensByChars(string str)
