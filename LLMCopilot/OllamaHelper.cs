@@ -85,6 +85,21 @@ namespace LLMCopilot
         public string GetExplainCodeTemplate(string code, string file)
         {
             string code_type = VsHelpers.GetSourceCodeType(file);
+
+            string templateRU = $@"## Инструкция
+Обобщите приведенный ниже код (с акцентом на его ключевую функциональность).
+
+## Выбранный код
+```{code_type}
+{code}
+```
+
+## Задача
+Обобщите код на высоком уровне (включая цель и назначение) с акцентом на его ключевую функциональность.
+
+## Ответ
+
+";
             string templateEN = $@"## Instructions
 Summarize the code below (emphasizing its key functionality).
 
@@ -114,12 +129,37 @@ Summarize the code at a high level (including goal and purpose) with an emphasis
 
 ";
 
-            return Options.Language == ResponseLanguage.English ? templateEN : templateCN;
+            return
+                  Options.Language == ResponseLanguage.English ? templateEN :
+                  Options.Language == ResponseLanguage.Chinese ? templateCN :
+                  Options.Language == ResponseLanguage.Russian ? templateRU :
+                  throw new NotSupportedException("Specified language is not supported");
         }
 
         public string GetFindBugTemplate(string code, string file)
         {
             string code_type = VsHelpers.GetSourceCodeType(file);
+
+            string templateRU = $@"## Инструкции
+Что может быть не так в приведённом ниже коде?
+Рассматривайте только те ошибки, которые могут привести к некорректному поведению программы.
+Язык программирования — {code_type}.
+
+## Выбранный код
+```{code_type}
+{code}
+```
+
+## Задача
+Опишите, что может быть не так в коде.
+Рассматривайте только ошибки, которые могут привести к некорректной работе.
+По возможности предложите варианты исправления.
+Учитывайте, что в коде может и не быть ошибок.
+Включайте примеры и фрагменты кода (в формате Markdown), где это уместно.
+
+## Анализ
+
+";
             string templateEN = $@"## Instructions
 What could be wrong with the code below?
 Only consider defects that would lead to incorrect behavior.
@@ -162,7 +202,11 @@ Include code snippets(using Markdown) and examples where appropriate.
 
 ";
 
-            return Options.Language == ResponseLanguage.English ? templateEN : templateCN;
+            return
+                Options.Language == ResponseLanguage.English ? templateEN :
+                Options.Language == ResponseLanguage.Chinese ? templateCN :
+                Options.Language == ResponseLanguage.Russian ? templateRU :
+                throw new NotSupportedException("Specified language is not supported");
         }
 
         public string GetOptimizeCodeTemplate(string code, string file)

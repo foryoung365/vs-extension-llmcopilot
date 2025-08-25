@@ -51,7 +51,7 @@ namespace LLMCopilot
     [ProvideMenuResource("Menus.ctmenu", 1)]
     [ProvideToolWindow(typeof(LLMChatWindow))]
     [ProvideOptionPage(typeof(OptionPageGrid),
-    "LLMCopilot", "常规", 0, 0, true)]
+    "LLMCopilot", "General", 0, 0, true)]
     [ProvideAutoLoad(UIContextGuids.SolutionExists, PackageAutoLoadFlags.BackgroundLoad)]
     [ProvideAutoLoad(UIContextGuids.NoSolution, PackageAutoLoadFlags.BackgroundLoad)]  // 当没有打开解决方案时也加载包
     public sealed class LLMCopilotPackage : AsyncPackage

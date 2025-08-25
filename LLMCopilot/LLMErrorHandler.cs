@@ -54,7 +54,7 @@ namespace LLMCopilot
 
         public static void HandleException(Exception exception)
         {
-            var message = $"发生异常: {FormatException(exception)}\n";
+            var message = $"An exception occurred: {FormatException(exception)}\n";
 
             //// 弹出对话框
             //VsShellUtilities.ShowMessageBox(
