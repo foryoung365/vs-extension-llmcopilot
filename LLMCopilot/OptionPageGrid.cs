@@ -10,10 +10,16 @@ namespace LLMCopilot
         English,
         Chinese,
     }
+    public enum LlmApiKind
+    {
+        OpenAI,
+        Ollama
+    }
 
     public class OptionPageGrid : DialogPage
     {
         private string baseUrl = "http://localhost:11434";
+        private LlmApiKind apiType = LlmApiKind.OpenAI;
         private string completeModel = "deepseek-coder:6.7b";
         private string chatModel = "deepseek-coder:6.7b";
         private bool enableAutoComplete = false;
@@ -21,7 +27,7 @@ namespace LLMCopilot
         private string fim_end = "<｜fim▁end｜>";
         private string fim_hole = "<｜fim▁hole｜>";
         private ResponseLanguage language = ResponseLanguage.English;
-        private string access_token = string.Empty;
+        private string access_token = "NO_KEY";
         private int chat_ctx_size = 4096;
         private int complete_ctx_size = 2048;
 
@@ -29,11 +35,20 @@ namespace LLMCopilot
 
         [Category("LLMCopilot")]
         [DisplayName("Base URL")]
-        [Description("Ollama Base URL.")]
+        [Description("API Base URL.")]
         public string BaseUrl
         {
             get { return baseUrl; }
             set { baseUrl = value; }
+        }
+
+        [Category("LLMCopilot")]
+        [DisplayName("LLM API Type")]
+        [Description("Supported endpoint APIs are OpenAI-compatible or Ollama.")]
+        public LlmApiKind LlmAPiType
+        {
+            get { return apiType; }
+            set { apiType = value; }
         }
 
         [Category("LLMCopilot")]
@@ -64,12 +79,25 @@ namespace LLMCopilot
                     OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST);
 
                 e.ApplyBehavior = ApplyKind.Cancel;
+                return;
             }
-            else
+
+            if (string.IsNullOrEmpty(this.AccessToken))
             {
-                OnSettingsChanged();
-                base.OnApply(e);
+                VsShellUtilities.ShowMessageBox(
+                    this.Site,
+                    "API access token cannot be empty.",
+                    "Invalid API Token",
+                    OLEMSGICON.OLEMSGICON_WARNING,
+                    OLEMSGBUTTON.OLEMSGBUTTON_OK,
+                    OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST);
+
+                e.ApplyBehavior = ApplyKind.Cancel;
+                return;
             }
+
+            OnSettingsChanged();
+            base.OnApply(e);
         }
 
         private bool IsValidUrl(string url)
@@ -174,7 +202,7 @@ namespace LLMCopilot
 
         [Category("LLMCopilot")]
         [DisplayName("Reverse Proxy Access Token")]
-        [Description("Bearer access token used for reverse proxy to connect to your Ollama server")]
+        [Description("Bearer access token used for reverse proxy to connect to your LLM API")]
         public string AccessToken
         {
             get { return access_token; }

@@ -6,7 +6,13 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
+using OllamaSharp;
+using OllamaSharp.Models;
+using OllamaSharp.Models.Chat;
+using OpenAI;
+using OpenAI.Chat;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -14,10 +20,8 @@ using System.Text;
 using System.Threading.Tasks;
 using IAsyncServiceProvider = Microsoft.VisualStudio.Shell.IAsyncServiceProvider;
 using Task = System.Threading.Tasks.Task;
-using OllamaSharp.Models;
 using System.Threading;
 using Thread = System.Threading.Thread;
-using System.Collections.Concurrent;
 
 namespace LLMCopilot
 {
@@ -171,7 +175,6 @@ namespace LLMCopilot
             return sb.ToString();
         }
 
-
         public static string GetSuffixLines(IWpfTextView textView, int n)
         {
             if (textView == null)
@@ -200,7 +203,6 @@ namespace LLMCopilot
 
             return sb.ToString();
         }
-
 
         public static string GetSourceCodeType(string fileName)
         {
@@ -262,7 +264,7 @@ namespace LLMCopilot
                     return "plaintext"; // Default to plaintext for unknown types
             }
         }
-
+        
         public static string StopAtSimilarLine(string stream, string line)
         {
                         // 拆分第一个字符串，考虑不同操作系统的换行符
@@ -366,7 +368,19 @@ namespace LLMCopilot
             {
                 await LLMCopilotProvider.EnsurePackageLoadedAsync();
 
-                var client = OllamaClientFactory.CreateClient();
+                OllamaApiClient ollamaApiClient = null;
+                ChatClient openAIChat = null;
+
+                var apiKind = OllamaHelper.Instance.Options.LlmAPiType;
+
+                if (apiKind == LlmApiKind.OpenAI)
+                {
+                    openAIChat = LlmClientFactory.CreateOpenAIChatClient();
+                }
+                else 
+                {
+                    ollamaApiClient = LlmClientFactory.CreateOllamaClient();
+                }
 
                 var Package = LLMCopilotProvider.Package;
 
@@ -385,21 +399,43 @@ namespace LLMCopilot
 
                 GenerateCompletionRequest req = new GenerateCompletionRequest
                 {
-                    Model = client.SelectedModel,
+                    Model = ollamaApiClient != null ? ollamaApiClient.SelectedModel : OllamaHelper.Instance.Options.CompleteModel,
                     Prompt = template,
                     Options = reqOps,
                     Raw = true
                 };
 
                 var OldCaretPosition = textView.Caret.Position.BufferPosition;
-                var resp = await client.GetCompletion(req, cancellationToken);
+
+                string comp_text = string.Empty;
+
+                if (apiKind == LlmApiKind.OpenAI)
+                {
+                    List<ChatMessage> chatMessageList = new List<ChatMessage>();
+                    chatMessageList.Add(new SystemChatMessage(req.Prompt));
+
+                    ChatCompletion resp = await openAIChat.CompleteChatAsync(chatMessageList, null, cancellationToken);
+
+                    comp_text = resp.Content[0].Text;
+                }
+                else
+                {
+                    var resp = await ollamaApiClient.GetCompletion(req, cancellationToken);
+                    
+                    comp_text = resp.Response;
+                }
+
                 var NewCaretPosition = textView.Caret.Position.BufferPosition;
                 if (NewCaretPosition.CompareTo(OldCaretPosition) != 0)
                 {
                     return;
                 }
 
-                var comp_text = resp.Response;
+                if (string.IsNullOrEmpty(comp_text))
+                {
+                    return;
+                }
+
                 comp_text = RemoveCommonSuffixPrefix(comp_text, SuffixCode);
                 // 在 UI 线程上创建和更新 Adornment
                 textView.VisualElement.Dispatcher.Invoke(() =>

@@ -1,4 +1,9 @@
-﻿using OllamaSharp.Models.Chat;
+﻿using OllamaSharp;
+using OllamaSharp.Models.Chat;
+using OpenAI;
+using OpenAI.Chat;
+using OpenAI.Models;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -66,8 +71,14 @@ namespace LLMCopilot
     {
         private ObservableCollection<MyMessage> _messages = new ObservableCollection<MyMessage>();
         public ObservableCollection<MyMessage> Messages => _messages;
-        private Chat Chat { get; set; }
+        private Chat ChatOllama { get; set; }
+        private ChatClient ChatOpenAI { get; set; }
+
         private StringBuilder _messageCache = new StringBuilder(); // 用于缓存数据
+        private LlmApiKind _apiKind = LlmApiKind.Ollama;
+
+        private CancellationTokenSource _cancelTokenSource = null;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="LLMChatWindowControl"/> class.
         /// </summary>
@@ -78,7 +89,6 @@ namespace LLMCopilot
             this.DataContext = this;
             MessagesScrollViewer.PreviewMouseWheel += MessagesScrollViewer_PreviewMouseWheel;
             //this.MessageItemsControl.ItemsSource = _messages;
-            Chat = OllamaClientFactory.CreateChat(OnChatResponseReceived);
             this.Unloaded += LLMChatWindowControl_Unloaded;
             this.Loaded += LLMChatWindowControl_loaded;
 
@@ -87,31 +97,49 @@ namespace LLMCopilot
 
         private void OnChatResponseReceived(ChatResponseStream response)
         {
-            if (response.Message != null && response.Message.Content != null)
+            this.OnChatResponseReceivedString(response.Message?.Content, response.Done);
+        }
+
+        private void OnChatResponseReceivedString(string responseChunk, bool responseDone)
+        {
+            bool containsKeyword = false;
+
+            if (!String.IsNullOrEmpty(responseChunk))
             {
                 // 将新内容添加到缓存
-                _messageCache.Append(response.Message.Content);
+                _messageCache.Append(responseChunk);
 
-                string[] delimeters = {"\n", ",", "，", ".", "。", ":", "：", ";", "；", "\t"};
+                string[] delimeters = { "\n", ",", "，", ".", "。", ":", "：", ";", "；", "\t" };
 
-                bool containsKeyword = delimeters.Any(keyword => response.Message.Content.Contains(keyword));
-                // 检查是否需要更新消息列表
-                if (_messageCache.Length > 64 || containsKeyword || response.Done)
-                {
-                    AppendOrUpdateLastMessage(_messageCache.ToString());
-                    _messageCache.Clear(); // 清空缓存
-                }
+                containsKeyword = delimeters.Any(keyword => responseChunk.Contains(keyword));
+            }
+
+            // 检查是否需要更新消息列表
+            if (_messageCache.Length > 64 || containsKeyword || responseDone)
+            {
+                AppendOrUpdateLastMessage(_messageCache.ToString());
+                _messageCache.Clear(); // 清空缓存
             }
         }
 
         private void ClearChatHistory_Click(object sender, RoutedEventArgs e)
         {
             _messages.Clear();
+            
+            //
+            // OLlama Chat keeps its own internal collection of messages.
+            //
+            this.ChatOllama = null;
         }
 
         private void SettingsMenuItem_Click(object sender, RoutedEventArgs e)
         {
+            _cancelTokenSource?.Cancel();
+
             SettingsCommand.Instance.Execute(this, EventArgs.Empty);
+
+            this.ChatOllama = null;
+            this.ChatOpenAI = null;
         }
 
         private void ListModels_Click(object sender, RoutedEventArgs e)
@@ -120,20 +148,31 @@ namespace LLMCopilot
             {
                 try
                 {
-                    var client = OllamaClientFactory.CreateClient();
-                    var models = await client.ListLocalModels();
-                    var modelNames = string.Join("  \n", models.Select(m => m.Name));
+                    string modelNames;
+                    
+                    if (this._apiKind == LlmApiKind.OpenAI)
+                    {
+                        OpenAIModelClient modelClient = LlmClientFactory.CreateOpenAIModelClient();
+                        
+                        var models = await modelClient.GetModelsAsync();
+                        modelNames = string.Join("  \n", models.Value.Select(m => m.Id));
+                    }
+                    else
+                    {
+                        var client = LlmClientFactory.CreateOllamaClient();
+                        var models = await client.ListLocalModels();
+                        modelNames = string.Join("  \n", models.Select(m => m.Name));
+                    }
 
-                    AddMessage(ChatRole.System, $"Available local models:  \n{modelNames}");
-
+                    AddMessage(ChatRole.System, $"Available models:  \n{modelNames}");
                 }
                 catch (Exception ex)
                 {
+                    this.OnChatResponseReceivedString("[Exception occured. See Documents\\LLMCopilot*.log]", true);
                     LLMErrorHandler.HandleException(ex);
                 }
             });
         }
-
 
         private void OnExplainCodeCommandExecuted(object sender, CommandExecutedEventArgs e)
         {
@@ -145,17 +184,39 @@ namespace LLMCopilot
             });
         }
 
+        private void CreateLlmChatClientIf()
+        {
+            if (this._apiKind == LlmApiKind.OpenAI)
+            {
+                if (this.ChatOpenAI == null)
+                {
+                    this.ChatOpenAI = LlmClientFactory.CreateOpenAIChatClient();
+                }
+
+                return;
+            }
+
+            if (this.ChatOllama == null)
+            {
+                this.ChatOllama = LlmClientFactory.CreateOlamaChat(this.OnChatResponseReceived);
+            }
+        }
+
         private void LLMChatWindowControl_loaded(object sender, RoutedEventArgs e)
         {
             EventManager.CodeCommandExecuted += OnExplainCodeCommandExecuted;
-            
-            Chat.Client.SelectedModel = OllamaHelper.Instance.Options.ChatModel;
-            Chat.Options = OllamaHelper.Instance.ChatRequestOptions;
-            Chat.Client.SetAuthorizationHeader(OllamaHelper.Instance.Options.AccessToken);
+
+            // Detect API type.
+            var options = OllamaHelper.Instance.Options;
+            this._apiKind = options.LlmAPiType;
+            this.ChatOpenAI = null;
+            this.ChatOllama = null;
         }
 
         private void LLMChatWindowControl_Unloaded(object sender, RoutedEventArgs e)
         {
+            _cancelTokenSource?.Cancel();
+
             EventManager.CodeCommandExecuted -= OnExplainCodeCommandExecuted;
             //_messages.Clear();
             KeepLastTenMessages();
@@ -193,16 +254,16 @@ namespace LLMCopilot
 
         private void AddMessage(ChatRole role, string Content)
         {
-            Dispatcher.InvokeAsync(() =>
+            Dispatcher.Invoke(() =>
             {
                 MyMessage userMessage = new MyMessage(role, Content);
                 _messages.Add(userMessage);
             }, System.Windows.Threading.DispatcherPriority.Background);
         }
 
-        private async void SendButton_Click(object sender, RoutedEventArgs e)
+        private void SendButton_Click(object sender, RoutedEventArgs e)
         {
-            await SendMessageAsync();
+            SendMessageAsync();
         }
 
         public void KeepLastTenMessages()
@@ -215,13 +276,18 @@ namespace LLMCopilot
                     _messages.RemoveAt(0);
                 }
             }
+
+            // TODO BUGBUG
+            // For Ollama Chat, one needs to delete the active chat, then create a new empty one,
+            // and then copy the remaining 10 messages over into that chat.
+            this.ChatOllama = null;
         }
 
         private async void MessageTextBox_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Enter && Keyboard.Modifiers == ModifierKeys.Control)
             {
-                await SendMessageAsync();
+                SendMessageAsync();
             }
         }
 
@@ -245,48 +311,163 @@ namespace LLMCopilot
 
         public async Task SendChatMessageAsync(string text, ChatRole role)
         {
+            TimeSpan LlmTimeoutOpenAI = TimeSpan.FromSeconds(30);
+            TimeSpan LlmTimeoutOllama = TimeSpan.FromSeconds(60);
+
             if (!string.IsNullOrWhiteSpace(text) && !VsHelpers.IsSending)
             {
                 VsHelpers.IsSending = true;
                 SendButton.Content = "Answering...";
                 SendButton.IsEnabled = false;
+                CancelButton.IsEnabled = true;
 
                 AddMessage(role, text);
 
                 ScrollToBottom();
 
-                var cts = new CancellationTokenSource();
-                cts.CancelAfter(TimeSpan.FromSeconds(30)); // 设置超时时间为30秒
+                _cancelTokenSource = new CancellationTokenSource();
+
                 try
                 {
                     await Task.Run(async () =>
                     {
-                        await Chat.Send(text, cts.Token);
+                        this.CreateLlmChatClientIf();
+
+                        if (this._apiKind == LlmApiKind.OpenAI && this.ChatOpenAI != null)
+                        {
+                            // Use OpenAI client
+                            _cancelTokenSource.CancelAfter(LlmTimeoutOpenAI); // 设置超时时间为30秒
+
+                            // Convert MyMessage to ChatMessage
+
+                            bool seenUserMessage = false;
+                            var openAIChatMessages = new List<ChatMessage>();
+
+                            foreach (MyMessage msg in this._messages)
+                            {
+                                ChatMessage chatMessage;
+
+                                if (msg.Role == ChatRole.System)
+                                {
+                                    chatMessage = new SystemChatMessage(msg.Content);
+                                }
+                                else if (msg.Role == ChatRole.Assistant)
+                                {
+                                    chatMessage = new AssistantChatMessage(msg.Content);
+                                }
+                                else
+                                {
+                                    chatMessage = new UserChatMessage(msg.Content);
+                                    seenUserMessage = true;
+                                }
+                                
+                                openAIChatMessages.Add(chatMessage);
+                            }
+
+                            if (openAIChatMessages.Count == 0)
+                            {
+                                throw new ApplicationException("Why openAIChatMessages.Count is zeo?");
+                            }
+
+                            //
+                            // Some models don't like it than there is no USER input in the prompt.
+                            //
+                            if (!seenUserMessage)
+                            {
+                                openAIChatMessages.Add(new UserChatMessage("."));
+                            }
+
+                            var streamingResponse = this.ChatOpenAI.CompleteChatStreamingAsync(openAIChatMessages, null, _cancelTokenSource.Token);
+                            var asyncEnumerator = streamingResponse.GetAsyncEnumerator(_cancelTokenSource.Token);
+
+                            try
+                            {
+                                while (await asyncEnumerator.MoveNextAsync())
+                                {
+                                    StreamingChatCompletionUpdate update = asyncEnumerator.Current;
+                                    
+                                    if (update.ContentUpdate?.Count > 0)
+                                    {
+                                        _cancelTokenSource.CancelAfter(LlmTimeoutOpenAI);
+
+                                        var chunkText = new System.Text.StringBuilder();
+
+                                        for (int i = 0; i < update.ContentUpdate.Count; i++)
+                                        {
+                                            chunkText.Append(update.ContentUpdate[i].Text);
+                                        }
+                                        
+                                        this.OnChatResponseReceivedOpenAI(
+                                            new LlmChatResponseChunk
+                                            {
+                                                Message = new LlmMessage { Role = "assistant", Content = chunkText.ToString() },
+                                                Done = false
+                                            });
+                                    }
+                                }
+                            }
+                            finally
+                            {
+                                await asyncEnumerator.DisposeAsync();
+                            }
+
+                            this.OnChatResponseReceivedOpenAI(
+                                new LlmChatResponseChunk
+                                {
+                                    Message = new LlmMessage { Role = "assistant", Content = string.Empty },
+                                    Done = true
+                                });
+                        }
+                        else
+                        {
+                            // Use Ollama client
+                            if (ChatOllama != null)
+                            {
+                                _cancelTokenSource.CancelAfter(LlmTimeoutOllama);
+
+                                await ChatOllama.Send(text, _cancelTokenSource.Token);
+                            }
+                        }
                     });
                 }
                 catch (Exception ex)
                 {
+                    if (!_cancelTokenSource.Token.IsCancellationRequested)
+                    {
+                        this.OnChatResponseReceivedString("[Exception occured. See Documents\\LLMCopilot*.log]", true);
+                    }
+                    else
+                    {
+                        this.OnChatResponseReceivedString("[Operation timed out]", true);
+                    }
+
                     // 其他异常处理
                     LLMErrorHandler.HandleException(ex);
                 }
-
 
                 // 确保在任何情况下都重置状态
                 VsHelpers.IsSending = false;
                 SendButton.Content = "Send";
                 SendButton.IsEnabled = true;
+                CancelButton.IsEnabled = false;
 
                 ScrollToBottom();
-
-                
             }
+        }
+
+        /// <summary>
+        /// Callback for OpenAI chat streaming responses.
+        /// </summary>
+        private void OnChatResponseReceivedOpenAI(LlmChatResponseChunk response)
+        {
+            this.OnChatResponseReceivedString(response.Message.Content, response.Done);
         }
 
         private async Task SendMessageAsync()
         {
             string text = MessageTextBox.Text;
             MessageTextBox.Clear();
-            await SendChatMessageAsync(text, ChatRole.User);
+            SendChatMessageAsync(text, ChatRole.User);
         }
 
 
@@ -297,6 +478,10 @@ namespace LLMCopilot
             e.Handled = true;
         }
 
+        private void CancelButton_Click(object sender, RoutedEventArgs e)
+        {
+            _cancelTokenSource?.Cancel();
+        }
     }
 
     public class CapitalizeFirstLetterConverter : IValueConverter

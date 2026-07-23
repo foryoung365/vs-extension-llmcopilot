@@ -6,6 +6,11 @@ Versioning rules: v`Major.Minor.Build`
 - Minor: Incremented for new features or optimizations (e.g., from 1.0.0 to 1.1.0)
 - Build: Automatically incremented with each build, typically does not involve functional changes, and can be ignored.
 
+### v1.7.x
+
+- Adding support for OpenAI-compatible API endpoints.
+- Adding Cancel button to the chat window to abort long text generations.
+
 ### v1.6.x
 
 - Added context length setting, which can be configured in the extension settings page.

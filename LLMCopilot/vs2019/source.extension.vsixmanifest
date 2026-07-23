@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <PackageManifest xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:ns1="http://schemas.microsoft.com/developer/vsx-schema-design/2011" Version="2.0.0">
     <Metadata>
-        <Identity Id="LLMCopilot.dd3fc432-86fc-4399-b056-17e6fb265891" Version="1.6.3" Language="en-US" Publisher="foryoung365" />
+        <Identity Id="LLMCopilot.dd3fc432-86fc-4399-b056-17e6fb265891" Version="1.7.0" Language="en-US" Publisher="foryoung365" />
         <DisplayName>LLMCopilot</DisplayName>
         <Description xml:space="preserve">Code with LLM copilot</Description>
         <Icon>logo.png</Icon>

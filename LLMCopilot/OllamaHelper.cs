@@ -1,15 +1,19 @@
 ﻿using System;
+using System.ClientModel;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using OllamaSharp;
+using OllamaSharp.Models;
 using OllamaSharp.Models.Chat;
+using OpenAI;
+using OpenAI.Chat;
+using OpenAI.Models;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using System.Windows.Controls;
 using System.Windows;
-using OllamaSharp.Models;
 using Task = System.Threading.Tasks.Task;
 using System.Text.RegularExpressions;
 using IAsyncServiceProvider = Microsoft.VisualStudio.Shell.IAsyncServiceProvider;
@@ -38,7 +42,6 @@ namespace LLMCopilot
         private string[] stop;
 
         public OptionPageGrid Options { get; private set; }
-
 
         private OllamaHelper()
         {
@@ -340,13 +343,23 @@ The programming language is {code_type}.
         {
             try
             {
-                var client = OllamaClientFactory.CreateClient();
+                var apiKind = Options.LlmAPiType;
+                
+                // InitModelCtx is Ollama-specific (reads model metadata for num_ctx)
+                // For OpenAI, we use default context size
+                if (apiKind == LlmApiKind.OpenAI)
+                {
+                    ChatRequestOptions.NumCtx = Options.ChatCtxSize;
+                    return;
+                }
+
+                var client = LlmClientFactory.CreateOllamaClient();
                 var chatModelInfo = await client.ShowModelInformation(Options.ChatModel);
                 var compModelInfo = await client.ShowModelInformation(Options.CompleteModel);
 
                 Func<string, string, int> GetCtx = (string parameters, string model) =>
                 {
-                    int num_ctx = defaultContext; 
+                    int num_ctx = defaultContext;
                     if (!string.IsNullOrEmpty(parameters))
                     {
                         var match = Regex.Match(parameters, @"PARAMETER\s+num_ctx\s+(\d+)");
@@ -376,16 +389,10 @@ The programming language is {code_type}.
     public static class EventManager
     {
         public static event EventHandler<CommandExecutedEventArgs> CodeCommandExecuted;
-        public static event EventHandler<CmdEventArgs> CmdEventsHandler;
 
         public static void OnCodeCommandExecuted(string selectedText)
         {
             CodeCommandExecuted?.Invoke(null, new CommandExecutedEventArgs(selectedText));
-        }
-
-        public static void OnCmdEventHandler(CmdEventType cmdType)
-        {
-            CmdEventsHandler?.Invoke(null, new CmdEventArgs(cmdType));
         }
     }
 
@@ -399,58 +406,59 @@ The programming language is {code_type}.
         }
     }
 
-    public enum CmdEventType
+    /// <summary>
+    /// Factory class that creates LLM clients for both Ollama and OpenAI APIs.
+    /// Detects the API type based on the base URL (ends with 'v1' = OpenAI).
+    /// </summary>
+    public static class LlmClientFactory
     {
-        ClearMessages,
-        ListModels
-    }
-
-    public class CmdEventArgs : EventArgs
-    {
-        public CmdEventType CmdType { get; }
-
-        public CmdEventArgs(CmdEventType cmdType)
-        {
-            CmdType = cmdType;
-        }
-    }
-
-    public class MessageTemplateSelector : DataTemplateSelector
-    {
-        public DataTemplate UserTemplate { get; set; }
-        public DataTemplate AssistantTemplate { get; set; }
-
-        public override DataTemplate SelectTemplate(object item, DependencyObject container)
-        {
-            var message = item as MyMessage;
-            if (message != null)
-            {
-                return message.Role == ChatRole.User ? UserTemplate : AssistantTemplate;
-            }
-            return base.SelectTemplate(item, container);
-        }
-    }
-
-    public class OllamaClientFactory
-    {
-        public static OllamaApiClient CreateClient()
+        /// <summary>
+        /// Creates an OllamaApiClient directly (for Ollama-specific operations).
+        /// Use CreateLlmClient() for API-agnostic operations.
+        /// </summary>
+        public static OllamaApiClient CreateOllamaClient()
         {
             var options = OllamaHelper.Instance.Options;
-            var ollamaApiClient = new OllamaApiClient(options.BaseUrl);
-            ollamaApiClient.SelectedModel = options.CompleteModel;
-            ollamaApiClient.SetAuthorizationHeader(options.AccessToken);
+            var cleanedUrl = ApiUtility.CleanBaseUrl(options.BaseUrl);
+            var client = new OllamaApiClient(cleanedUrl);
+            client.SelectedModel = options.CompleteModel;
+            client.SetAuthorizationHeader(options.AccessToken);
             
-            return ollamaApiClient;
+            return client;
         }
 
-        public static Chat CreateChat(Action<ChatResponseStream> streamer)
+        public static Chat CreateOlamaChat(Action<ChatResponseStream> streamer)
         {
-            var ollamaApiClient = CreateClient();
+            var ollamaApiClient = LlmClientFactory.CreateOllamaClient();
             var options = OllamaHelper.Instance.Options;
             ollamaApiClient.SelectedModel = options.ChatModel;
             var chat = new Chat(ollamaApiClient, streamer, OllamaHelper.Instance.ChatRequestOptions);
 
             return chat;
+        }
+
+        public static OpenAIModelClient CreateOpenAIModelClient()
+        {
+            var options = OllamaHelper.Instance.Options;
+
+            OpenAIClientOptions clientOptions = new OpenAIClientOptions();
+            clientOptions.Endpoint = new Uri(ApiUtility.CleanBaseUrl(options.BaseUrl));
+
+            OpenAIModelClient modelClient = new OpenAIModelClient(new ApiKeyCredential(options.AccessToken), clientOptions);
+
+            return modelClient;
+        }
+
+        public static ChatClient CreateOpenAIChatClient()
+        {
+            var options = OllamaHelper.Instance.Options;
+
+            OpenAIClientOptions clientOptions = new OpenAIClientOptions();
+            clientOptions.Endpoint = new Uri(ApiUtility.CleanBaseUrl(options.BaseUrl));
+
+            ChatClient openAiChatClient = new ChatClient(options.ChatModel, new ApiKeyCredential(options.AccessToken), clientOptions);
+
+            return openAiChatClient;
         }
     }
 }

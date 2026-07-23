@@ -26,6 +26,8 @@
     <StartAction>Program</StartAction>
     <StartProgram Condition="'$(DevEnvDir)' != ''">$(DevEnvDir)devenv.exe</StartProgram>
     <StartArguments>/rootsuffix Exp</StartArguments>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -46,6 +48,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="..\AddCommentCommand.cs" />
+    <Compile Include="..\ApiUtility.cs" />
     <Compile Include="..\CodeCompleteCommand.cs" />
     <Compile Include="..\FindBugCommand.cs" />
     <Compile Include="..\UnitTestCommand.cs" />
@@ -56,8 +59,10 @@
     <Compile Include="..\LLMChatWindowControl.xaml.cs">
       <DependentUpon>LLMChatWindowControl.xaml</DependentUpon>
     </Compile>
+    <Compile Include="..\LlmApiClient.cs" />
     <Compile Include="..\ExplainCommand.cs" />
     <Compile Include="..\OllamaHelper.cs" />
+    <Compile Include="..\OllamaLlmApiClient.cs" />
     <Compile Include="..\OllamaSharp\ActionResponseStreamer.cs" />
     <Compile Include="..\OllamaSharp\Chat.cs" />
     <Compile Include="..\OllamaSharp\ChatDoneResponseStream.cs" />
@@ -115,7 +120,10 @@
     <PackageReference Include="Microsoft.VisualStudio.SDK" Version="17.0.32112.339" ExcludeAssets="runtime" />
     <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="17.9.3184" />
     <PackageReference Include="Newtonsoft.Json">
-      <Version>13.0.3</Version>
+      <Version>13.0.4</Version>
+    </PackageReference>
+    <PackageReference Include="OpenAI">
+      <Version>2.12.0</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
@@ -170,10 +178,11 @@
       <VSIXSourceItem Include="@(ReferencePath)" Condition="$([System.String]::new('%(ReferencePath.FusionName)').StartsWith('Newtonsoft.Json'))" />
       <VSIXSourceItem Include="@(ReferencePath)" Condition="$([System.String]::new('%(ReferencePath.FusionName)').StartsWith('MdXaml'))" />
       <VSIXSourceItem Include="@(ReferencePath)" Condition="$([System.String]::new('%(ReferencePath.FusionName)').StartsWith('ICSharpCode.AvalonEdit'))" />
+      <VSIXSourceItem Include="@(ReferencePath)" Condition="$([System.String]::new('%(ReferencePath.FusionName)').StartsWith('OpenAI'))" />
     </ItemGroup>
   </Target>
   <PropertyGroup>
-    <PreBuildEvent>python "$(ProjectDir)..\inc_ver.py" $(ProjectDir)
-</PreBuildEvent>
+    <PreBuildEvent>
+    </PreBuildEvent>
   </PropertyGroup>
 </Project>
